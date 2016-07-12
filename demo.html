@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="http://dhis2-cdn.org/v215/ext/resources/css/ext-plugin-gray.css" />
+    <script src="https://dhis2-cdn.org/v215/ext/ext-all.js"></script>
+    <script src="https://dhis2-cdn.org/v215/plugin/table.js"></script>
+
+    <script>
+        var base = "http://localhost:8000";
+
+        // Login - if OK, call the setLinks function
+
+        Ext.onReady( function() {
+            Ext.Ajax.request({
+                url: base + "/dhis-web-commons-security/login.action",
+                method: "POST",
+                headers: {
+                  'Access-Control-Allow-Origin':'*'
+                },
+                params: { j_username: "admin", j_password: "district" },
+                success: setLinks
+            });
+        });
+
+        function setLinks() {
+
+            // Referring to an existing table through the id parameter, render to "table1" div
+
+            DHIS.getTable({ url: base, el: "table1", id: "R0DVGvXDUNP" });
+
+            // Full table configuration, render to "table2" div
+
+            DHIS.getTable({
+                url: base,
+                el: "table2",
+                columns: [
+                    {dimension: "de", items: [{id: "YtbsuPPo010"}, {id: "l6byfWFUGaP"}]}
+                ],
+                rows: [
+                    {dimension: "pe", items: [{id: "LAST_12_MONTHS"}]}
+                ],
+                filters: [
+                    {dimension: "ou", items: [{id: "USER_ORGUNIT"}]}
+                ],
+                // All following options are optional
+                showTotals: false,
+                showSubTotals: false,
+                hideEmptyRows: true,
+                showHierarchy: true,
+                displayDensity: "comfortable",
+                fontSize: "large",
+                digitGroupSeparator: "comma",
+                legendSet: {id: "BtxOoQuLyg1"}
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div id="table1"></div>
+<div id="table2"></div>
+</body>
+</html>

@@ -3,9 +3,10 @@
     <link rel="stylesheet" type="text/css"
           href="http://localhost:8080/dhis-web-commons/javascripts/ext/resources/css/ext-plugin-gray.css"/>
     <script src="http://localhost:8080/dhis-web-commons/javascripts/ext/ext-all.js"></script>
-    <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/chart.js"></script>
-    <script src="http://localhost:8080/dhis-web-commons/javascripts/plugin/table.js"></script>
-    <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventchart.js"></script>
+    <script type="text/javascript" src="chart.js"></script>
+    <script type="text/javascript" src="eventChart.js"></script>
+    <script src="table.js"></script>
+    <!--<script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventchart.js"></script>-->
     <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventreport.js"></script>
     <!--<script type="text/javascript" src="//canvg.googlecode.com/svn/trunk/rgbcolor.js"></script>-->
     <script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script>
@@ -13,29 +14,27 @@
     <script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script>
     <script type="text/javascript" src="jszip.js"></script>
     <script type="text/javascript" src="fileSaver.js"></script>
-    <!--<srcipt type="text/javascript" src="https://github.com/gliffy/canvas2svg/blob/master/canvas2svg.js"></srcipt>-->
-    <!--<script src="https://play.dhis2.org/demo/dhis-web-dashboard-integration/plugin/eventreport.js" type="text/javascript"></script>-->
+    <script type="text/javascript" src="html2canvas.js"></script>
+    <script type="text/javascript" src="dom2image.js"></script>
+
 
     <script>
         var base = "http://localhost:8000";
 
         Ext.onReady(function () {
-            DHIS.getChart({url: base, el: "chart", id: "UlfTKWZWV4u", type: "gauge"});
-            DHIS.getTable({url: base, el: "report", id: "tWg9OiyV7mu", type: "guage"});
+            DHIS.getChart({url: base, el: "chart", id: "bmbGtJv6dcR",type:"column"});
+            DHIS.getTable({url: base, el: "report", id: "tWg9OiyV7mu", type: "column"
+            });
             DHIS.getEventChart({
                 url: base,
                 el: "eventChart",
-                id: "nF8x11ILDnC",
-                type: "line",
-                crossDomain: false,
-                skipMask: false,
-                dashboard: false
+                id: "VAkCRKwVYDW"
             });
+
             DHIS.getEventReport({
                 url: base,
                 el: "eventReport",
-                id: "aDrb9UMVxt0",
-                type: "pi"
+                id: "pLJAnM1rHex"
             });
 
         });
@@ -44,6 +43,27 @@
             var can = document.getElementById('canvas');
             var chart = document.querySelector("#chart svg");
             var chartstring = new XMLSerializer().serializeToString(chart);
+            var multiData = new FormData();
+            multiData.append("svg",chartstring);
+            multiData.append("filename","srikanth");
+            var data = {'svg':chartstring,'filename':'myImage'};
+            $.ajax({
+                type: "POST",
+                url: base + "/post",
+                data: $.param(data),
+                contentType:"application/x-www-form-urlencoded",
+                processData: false,
+                success: function (result) {
+                    base
+//                    var a = canvas.toDataURL("aksdfjlskfjds");
+//                    console.log(a);
+                    var img = document.createElement("img");
+                    img.setAttribute("src",url.createObjectURL(result));
+                    document.body.appendChild(img)
+                    // grid.dataBind(result.results);
+                    // grid.dataBind(result);
+                }
+            });
             canvg(can, chartstring);
             var image = can.toDataURL("image/png");
             var obj = {image: image, narrative: "this is narrative"};
@@ -77,6 +97,84 @@
                     });
 
         };
+
+        var sendAsTable = function () {
+            $(document).ready(function () {
+                html2canvas([document.getElementById("report")], {
+                    onrendered: function(canvas) {
+                        theCanvas = canvas;
+                       var png = canvas.toDataURL("image/png");
+                        var a = document.createElement("img");
+                        a.setAttribute("src",png);
+//                        document.body.appendChild(a);
+//                        canvas.width=1136;
+                        document.body.appendChild(canvas);
+
+                    }
+                });
+            });
+
+        }
+
+        var getImage = function () {
+            var can = document.getElementById('canvas')
+            var chart = document.querySelector("#chart svg");
+            can.width = chart.getBoundingClientRect().width;
+            var svg_xml = (new XMLSerializer()).serializeToString(chart);
+            var ctx = can.getContext('2d');
+
+            // this is just a JavaScript (HTML) image
+            var img = new Image();
+            // http://en.wikipedia.org/wiki/SVG#Native_support
+            // https://developer.mozilla.org/en/DOM/window.btoa
+            img.src = "data:image/svg+xml;base64," + btoa(svg_xml);
+
+//            img.onload = function() {
+                // after this, Canvas’ origin-clean is DIRTY
+                ctx.drawImage(img,0,0);
+//            }
+        }
+
+        var dom2Image = function () {
+            var node = document.getElementById('report');
+            console.log(node);
+
+            domtoimage.toPng(node)
+                    .then(function (dataUrl) {
+                        var img = new Image();
+                        img.src = dataUrl;
+                        document.body.appendChild(img);
+                    })
+                    .catch(function (error) {
+                        console.error('ooops, something went wrong!', error);
+                    });
+
+
+
+        };
+
+        var testImage = function() {
+            var testString = (new XMLSerializer()).serializeToString(document.querySelector("#eventChart svg"))
+            var img = new Image();
+            img.src = 'data:image/svg+xml;utf8,' + testString;
+            var can = document.getElementById('canvas');
+            var ctx = can.getContext('2d');
+            ctx.drawImage(img,0,0);
+            document.body.appendChild(img);
+        }
+        
+        var tableToImage = function () {
+            var can = document.getElementById('canvas');
+            var ctx = can.getContext('2d');
+            var chart = document.querySelector('#myobj svg');
+            var chartstring = new XMLSerializer().serializeToString(chart);
+            var img = new Image();
+            img.src = "data:image/svg+xml;base64," + btoa(chartstring);
+            img.onload = function() {
+                // after this, Canvas’ origin-clean is DIRTY
+                ctx.drawImage(img, 0, 0);
+            }
+        }
     </script>
 </head>
 
@@ -85,12 +183,43 @@
 <div id="report"></div>
 <div id="eventChart"></div>
 <div id="eventReport"></div>
+<div id = "myobj">
+<!--<svg xmlns="http://www.w3.org/2000/svg">-->
+    <!--<switch>-->
+    <!--<foreignObject x="10" y="10" width="100" height="150">-->
+        <!--<body xmlns="http://www.w3.org/1999/xhtml">-->
+        <!--<table style="width:100%">-->
+            <!--<tr>-->
+                <!--<th>Firstname</th>-->
+                <!--<th>Lastname</th>-->
+                <!--<th>Age</th>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td>Jill</td>-->
+                <!--<td>Smith</td>-->
+                <!--<td>50</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td>Eve</td>-->
+                <!--<td>Jackson</td>-->
+                <!--<td>94</td>-->
+            <!--</tr>-->
+        <!--</table>-->
+        <!--</body>-->
+    <!--</foreignObject>-->
+        <!--</switch>-->
+<!--</svg>-->
+</div>
 
-<canvas id="canvas" width="800px" height="600px"></canvas>
-
+<canvas id="canvas" ></canvas>
 
 <button onclick="sendAsFormData()">send form data</button>
 <button onclick="downloadAsZip()">download the zip</button>
+<button onclick="sendAsTable()">send table</button>
+<button onclick="dom2Image()">dom to image</button>
+<button onclick="getImage()">getImageWithoutCanvg</button>
+<button onclick="testImage()">canvaswithoutCanvg</button>
+<button onclick="tableToImage()">tabletoimage</button>
 </body>
 </html>
 

@@ -1,181 +1,90 @@
-<html>
+
 <head>
-    <link rel="stylesheet" type="text/css"
-          href="http://localhost:8080/dhis-web-commons/javascripts/ext/resources/css/ext-plugin-gray.css"/>
-    <script src="http://localhost:8080/dhis-web-commons/javascripts/ext/ext-all.js"></script>
-    <script type="text/javascript" src="chart.js"></script>
-    <script type="text/javascript" src="eventChart.js"></script>
-    <script src="table.js"></script>
-    <!--<script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventchart.js"></script>-->
-    <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventreport.js"></script>
-    <!--<script type="text/javascript" src="//canvg.googlecode.com/svn/trunk/rgbcolor.js"></script>-->
-    <script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script>
-    <script type="text/javascript" src="http://gabelerner.github.io/canvg/StackBlur.js"></script>
-    <script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script>
-    <script type="text/javascript" src="jszip.js"></script>
-    <script type="text/javascript" src="fileSaver.js"></script>
-    <script type="text/javascript" src="html2canvas.js"></script>
-    <script type="text/javascript" src="dom2image.js"></script>
+
+  <link rel="stylesheet" type="text/css"
+        href="http://localhost:8080/dhis-web-commons/javascripts/ext/resources/css/ext-plugin-gray.css"/>
+  <script src="http://localhost:8080/dhis-web-commons/javascripts/ext/ext-all.js"></script>
+  <script type="text/javascript" src="chart.js"></script>
+  <!--<script type="text/javascript" src="eventChart.js"></script>-->
+  <script src="table.js"></script>
+  <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventchart.js"></script>
+  <script src="http://localhost:8080/dhis-web-dashboard-integration/plugin/eventreport.js"></script>
+  <!--<script type="text/javascript" src="//canvg.googlecode.com/svn/trunk/rgbcolor.js"></script>-->
+  <script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script>
+  <script type="text/javascript" src="http://gabelerner.github.io/canvg/StackBlur.js"></script>
+  <script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script>
+  <script type="text/javascript" src="jszip.js"></script>
+  <script type="text/javascript" src="fileSaver.js"></script>
+  <script type="text/javascript" src="html2canvas.js"></script>
+  <script type="text/javascript" src="dom2image.js"></script>
+  <script type="text/javascript" src="tableToSvg.js"></script>
+  <script type="text/javascript" src="d3.js"></script>
+  <!--<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
+  <!--<script type="text/javascript" src="jquery.min.js"></script>-->
 
 
-    <script>
-        var base = "http://localhost:8000";
+  <script>
+    var base = "http://localhost:8000";
 
         Ext.onReady(function () {
-            DHIS.getChart({url: base, el: "chart", id: "bmbGtJv6dcR",type:"column"});
-            DHIS.getTable({url: base, el: "report", id: "tWg9OiyV7mu", type: "column"
-            });
+            DHIS.getChart({url: base, el: "chart", id: "gnROK20DfAA", type:'column',relativePeriodDate:"2015-05-01",rows: [
+                {dimension: "pe", items: [{id: "LAST_6_MONTHS"}]}
+            ]});
+            DHIS.getTable({url: base, el: "report", id: "tWg9OiyV7mu",relativePeriodDate:"2016-11-03",rows: [
+                {dimension: "pe", items: [{id: "LAST_3_MONTHS"}]}
+            ]});
             DHIS.getEventChart({
                 url: base,
                 el: "eventChart",
-                id: "VAkCRKwVYDW"
-            });
+                id: "VAkCRKwVYDW",
+                rows: [
+                  {dimension: "pe", items:[{id:"201601"},{id:"201511"}]}
+                ]
 
+            });
             DHIS.getEventReport({
                 url: base,
                 el: "eventReport",
-                id: "pLJAnM1rHex"
+                id: "R4wAb2yMLik",
+                rows: [
+                    {dimension: "pe", items:[{id:"201612"},{id:"201611"}]}
+                ]
             });
 
+    });
+
+    var sendAsTable = function() {
+      $(document).ready(function() {
+        html2canvas([document.getElementById("eventReport")], {
+          onrendered: function(canvas) {
+            console.log(canvas, "canvas")
+            var png = canvas.toDataURL("image/png");
+            var a = document.createElement("img");
+            a.setAttribute("src", png);
+            document.body.appendChild(a);
+
+          }
         });
+      });
 
-        var sendAsFormData = function () {
-            var can = document.getElementById('canvas');
-            var chart = document.querySelector("#chart svg");
-            var chartstring = new XMLSerializer().serializeToString(chart);
-            var multiData = new FormData();
-            multiData.append("svg",chartstring);
-            multiData.append("filename","srikanth");
-            var data = {'svg':chartstring,'filename':'myImage'};
-            $.ajax({
-                type: "POST",
-                url: base + "/post",
-                data: $.param(data),
-                contentType:"application/x-www-form-urlencoded",
-                processData: false,
-                success: function (result) {
-                    base
-//                    var a = canvas.toDataURL("aksdfjlskfjds");
-//                    console.log(a);
-                    var img = document.createElement("img");
-                    img.setAttribute("src",url.createObjectURL(result));
-                    document.body.appendChild(img)
-                    // grid.dataBind(result.results);
-                    // grid.dataBind(result);
-                }
-            });
-            canvg(can, chartstring);
-            var image = can.toDataURL("image/png");
-            var obj = {image: image, narrative: "this is narrative"};
-            var multiData = new FormData();
-            multiData.append("reportingObj1", JSON.stringify(obj));
-            multiData.append("reportingObj2", JSON.stringify(obj));
-            $.ajax({
-                type: "POST",
-                url: base + "/export",
-                data: multiData,
-                contentType:false,
-                processData: false
-            });
-        };
+    }
 
-        var downloadAsZip = function () {
-            //imgae download
-            var can = document.getElementById('canvas');
-            var chart = document.querySelector("#chart svg");
-            var chartstring = new XMLSerializer().serializeToString(chart);
-            canvg(can, chartstring);
-            var image = can.toDataURL("image/png");
-            image = image.replace(/^data:image\/png;base64,/, "");
+    var dom2Image = function() {
+      var node = document.getElementById('eventReport');
 
-            var zip = new JSZip();
-            var img = zip.folder("images");
-            img.file("firstImge.png", image, {base64: true});
-            zip.generateAsync({type: "blob"})
-                    .then(function (content) {
-                        saveAs(content, "example.zip");
-                    });
-
-        };
-
-        var sendAsTable = function () {
-            $(document).ready(function () {
-                html2canvas([document.getElementById("report")], {
-                    onrendered: function(canvas) {
-                        theCanvas = canvas;
-                       var png = canvas.toDataURL("image/png");
-                        var a = document.createElement("img");
-                        a.setAttribute("src",png);
-//                        document.body.appendChild(a);
-//                        canvas.width=1136;
-                        document.body.appendChild(canvas);
-
-                    }
-                });
-            });
-
-        }
-
-        var getImage = function () {
-            var can = document.getElementById('canvas')
-            var chart = document.querySelector("#chart svg");
-            can.width = chart.getBoundingClientRect().width;
-            var svg_xml = (new XMLSerializer()).serializeToString(chart);
-            var ctx = can.getContext('2d');
-
-            // this is just a JavaScript (HTML) image
+      domtoimage.toPng(node)
+          .then(function(dataUrl) {
             var img = new Image();
-            // http://en.wikipedia.org/wiki/SVG#Native_support
-            // https://developer.mozilla.org/en/DOM/window.btoa
-            img.src = "data:image/svg+xml;base64," + btoa(svg_xml);
-
-//            img.onload = function() {
-                // after this, Canvas’ origin-clean is DIRTY
-                ctx.drawImage(img,0,0);
-//            }
-        }
-
-        var dom2Image = function () {
-            var node = document.getElementById('report');
-            console.log(node);
-
-            domtoimage.toPng(node)
-                    .then(function (dataUrl) {
-                        var img = new Image();
-                        img.src = dataUrl;
-                        document.body.appendChild(img);
-                    })
-                    .catch(function (error) {
-                        console.error('ooops, something went wrong!', error);
-                    });
-
-
-
-        };
-
-        var testImage = function() {
-            var testString = (new XMLSerializer()).serializeToString(document.querySelector("#eventChart svg"))
-            var img = new Image();
-            img.src = 'data:image/svg+xml;utf8,' + testString;
-            var can = document.getElementById('canvas');
-            var ctx = can.getContext('2d');
-            ctx.drawImage(img,0,0);
+            img.src = dataUrl;
             document.body.appendChild(img);
-        }
-        
-        var tableToImage = function () {
-            var can = document.getElementById('canvas');
-            var ctx = can.getContext('2d');
-            var chart = document.querySelector('#myobj svg');
-            var chartstring = new XMLSerializer().serializeToString(chart);
-            var img = new Image();
-            img.src = "data:image/svg+xml;base64," + btoa(chartstring);
-            img.onload = function() {
-                // after this, Canvas’ origin-clean is DIRTY
-                ctx.drawImage(img, 0, 0);
-            }
-        }
-    </script>
+          })
+          .catch(function(error) {
+            console.error('ooops, something went wrong!', error);
+          });
+
+    };
+
+  </script>
 </head>
 
 <body>
@@ -183,43 +92,14 @@
 <div id="report"></div>
 <div id="eventChart"></div>
 <div id="eventReport"></div>
-<div id = "myobj">
-<!--<svg xmlns="http://www.w3.org/2000/svg">-->
-    <!--<switch>-->
-    <!--<foreignObject x="10" y="10" width="100" height="150">-->
-        <!--<body xmlns="http://www.w3.org/1999/xhtml">-->
-        <!--<table style="width:100%">-->
-            <!--<tr>-->
-                <!--<th>Firstname</th>-->
-                <!--<th>Lastname</th>-->
-                <!--<th>Age</th>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td>Jill</td>-->
-                <!--<td>Smith</td>-->
-                <!--<td>50</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td>Eve</td>-->
-                <!--<td>Jackson</td>-->
-                <!--<td>94</td>-->
-            <!--</tr>-->
-        <!--</table>-->
-        <!--</body>-->
-    <!--</foreignObject>-->
-        <!--</switch>-->
-<!--</svg>-->
-</div>
 
-<canvas id="canvas" ></canvas>
+<!--<div id="report1">-->
+<!--</div>-->
+<canvas id="canvas" width="1500" height="500"></canvas>
 
-<button onclick="sendAsFormData()">send form data</button>
-<button onclick="downloadAsZip()">download the zip</button>
-<button onclick="sendAsTable()">send table</button>
+
+<button onclick="sendAsTable()">html to canvas</button>
 <button onclick="dom2Image()">dom to image</button>
-<button onclick="getImage()">getImageWithoutCanvg</button>
-<button onclick="testImage()">canvaswithoutCanvg</button>
-<button onclick="tableToImage()">tabletoimage</button>
 </body>
 </html>
 
